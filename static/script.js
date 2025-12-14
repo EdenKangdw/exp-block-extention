@@ -31,7 +31,7 @@ function renderFixedExtensions(extensions) {
 
         const input = document.createElement('input');
         input.type = 'checkbox';
-        input.checked = ext.is_checked === 1;
+        input.checked = ext.is_checked;
         input.addEventListener('change', () => toggleFixedExtension(ext.name, input.checked));
 
         label.appendChild(input);
