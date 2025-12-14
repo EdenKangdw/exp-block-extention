@@ -35,11 +35,20 @@ def get_extensions():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT * FROM fixed_extensions")
-    fixed = [dict(row) for row in cursor.fetchall()]
+    # Fixed extensions
+    cursor.execute("SELECT name, is_allowed FROM file_extensions WHERE type = 'fixed'")
+    fixed_rows = cursor.fetchall()
+    # Convert is_allowed (1=Allowed) to is_checked (1=Blocked)
+    # If is_allowed=1 (True), then is_checked=0 (False)
+    # If is_allowed=0 (False), then is_checked=1 (True)
+    fixed = [{"name": row['name'], "is_checked": not row['is_allowed']} for row in fixed_rows]
     
-    cursor.execute("SELECT * FROM custom_extensions")
-    custom = [dict(row) for row in cursor.fetchall()]
+    # Custom extensions (Only return blocked ones, i.e., is_allowed=0)
+    # Actually, for custom extensions, existence in the list usually means blocked.
+    # In our new schema, we insert them as type='custom'.
+    # Let's assume all custom extensions in the table are blocked.
+    cursor.execute("SELECT name FROM file_extensions WHERE type = 'custom'")
+    custom = [{"name": row['name']} for row in cursor.fetchall()]
     
     conn.close()
     return {"fixed": fixed, "custom": custom}
@@ -49,7 +58,15 @@ def update_fixed_extension(name: str, update: FixedExtensionUpdate):
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("UPDATE fixed_extensions SET is_checked = ? WHERE name = ?", (1 if update.is_checked else 0, name))
+    # is_checked=True means Blocked -> is_allowed=False
+    is_allowed = not update.is_checked
+    
+    cursor.execute('''
+        UPDATE file_extensions 
+        SET is_allowed = ?, update_at = CURRENT_TIMESTAMP 
+        WHERE name = ? AND type = 'fixed'
+    ''', (is_allowed, name))
+    
     conn.commit()
     conn.close()
     return {"message": "Updated successfully"}
@@ -69,7 +86,7 @@ def add_custom_extension(ext: CustomExtensionCreate):
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT COUNT(*) as count FROM custom_extensions")
+    cursor.execute("SELECT COUNT(*) as count FROM file_extensions WHERE type = 'custom'")
     count = cursor.fetchone()['count']
     
     if count >= 200:
@@ -77,7 +94,11 @@ def add_custom_extension(ext: CustomExtensionCreate):
         raise HTTPException(status_code=400, detail="Maximum number of custom extensions reached (200)")
     
     try:
-        cursor.execute("INSERT INTO custom_extensions (name) VALUES (?)", (name,))
+        # Custom extensions are blocked by default (is_allowed=False)
+        cursor.execute('''
+            INSERT INTO file_extensions (name, type, is_allowed, update_by, update_at) 
+            VALUES (?, 'custom', 0, 'guest', CURRENT_TIMESTAMP)
+        ''', (name,))
         conn.commit()
     except sqlite3.IntegrityError:
         conn.close()
@@ -91,7 +112,7 @@ def delete_custom_extension(name: str):
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("DELETE FROM custom_extensions WHERE name = ?", (name,))
+    cursor.execute("DELETE FROM file_extensions WHERE name = ? AND type = 'custom'", (name,))
     conn.commit()
     conn.close()
     return {"message": "Deleted successfully"}
@@ -101,7 +122,7 @@ def delete_all_custom_extensions():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("DELETE FROM custom_extensions")
+    cursor.execute("DELETE FROM file_extensions WHERE type = 'custom'")
     conn.commit()
     conn.close()
     return {"message": "All custom extensions deleted"}

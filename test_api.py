@@ -75,9 +75,9 @@ def test_custom_extensions():
 
     # Test 200 limit
     print("Testing 200 Limit (this might take a second)...")
+    print("Testing 200 Limit (this might take a second)...")
     # Clear all custom extensions first to be sure
-    for name in custom_names:
-        requests.delete(f"{BASE_URL}/custom-extensions/{name}")
+    requests.delete(f"{BASE_URL}/custom-extensions")
         
     # Add 200 extensions
     for i in range(200):
@@ -93,8 +93,7 @@ def test_custom_extensions():
     print("  [Pass] 200 Limit Check")
     
     # Cleanup
-    for i in range(200):
-        requests.delete(f"{BASE_URL}/custom-extensions/test{i}")
+    requests.delete(f"{BASE_URL}/custom-extensions")
     print("  [Pass] Cleanup")
 
 if __name__ == "__main__":
@@ -102,5 +101,6 @@ if __name__ == "__main__":
         test_fixed_extensions()
         test_custom_extensions()
         print("\nAll Tests Passed!")
-    except Exception as e:
-        print(f"\nTest Failed: {e}")
+    except Exception:
+        import traceback
+        traceback.print_exc()
