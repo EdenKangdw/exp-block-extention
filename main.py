@@ -75,7 +75,7 @@ import re
 
 @app.post("/api/custom-extensions")
 def add_custom_extension(ext: CustomExtensionCreate):
-    name = ext.name.strip()
+    name = ext.name.strip().lower()
     
     if len(name) > 20:
         raise HTTPException(status_code=400, detail="Invalid extension name (max 20 chars)")
