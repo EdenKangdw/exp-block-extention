@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>파일 확장자 차단</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>파일 확장자 차단</h1>
+            <hr>
+        </header>
+
+        <section class="description">
+            <h2>사용법</h2>
+            <ul style="font-size: 14px; line-height: 1.6; color: #636e72; padding-left: 20px; margin: 0;">
+                <li><strong>고정 확장자:</strong> 체크박스를 클릭하여 차단할 확장자를 선택/해제합니다.</li>
+                <li><strong>커스텀 확장자:</strong>
+                    <ul>
+                        <li>입력창에 확장자(영문/숫자, 최대 20자)를 입력하고 '추가'를 클릭합니다.</li>
+                        <li>'X'를 눌러 개별 삭제하거나, '전체 삭제'로 초기화할 수 있습니다.</li>
+                        <li>최대 200개까지 등록 가능합니다.</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+        <section class="fixed-extensions">
+            <h3>고정 확장자</h3>
+            <div id="fixed-extension-list" class="checkbox-group">
+                <!-- Fixed extensions will be injected here -->
+            </div>
+        </section>
+
+        <section class="custom-extensions">
+            <h3>커스텀 확장자</h3>
+            <div class="input-group">
+                <input type="text" id="custom-extension-input" placeholder="확장자 입력" maxlength="20">
+                <button id="add-button">+추가</button>
+            </div>
+            <div class="info-text">
+                <span id="count-display">0/200</span>
+                <button id="delete-all-button" class="text-btn">전체 삭제</button>
+            </div>
+            <div id="custom-extension-list" class="tag-container">
+                <!-- Custom extensions will be injected here -->
+            </div>
+        </section>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
